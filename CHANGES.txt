@@ -4,6 +4,12 @@
   * Stop emitting boilerplate {Copy/Merge}From in each ProtoBuf class
   * Fixed some uninitialized variable warnings in generated_message_reflection.cc.
 
+  Java
+  * Backport upstream 3.16.x Java parsing refactor (protobuf #10668 / CVE-2022-3171):
+    wire-format parsing moved from parse constructors to builders; reuse unknown-field
+    builders during merge; lite runtime and extensions merge from wire more efficiently;
+    TextFormat builds recurring sub-messages without merge-from-new-instance.
+
   Kotlin
   * Fix duplicate proto files error (#8699)
 
