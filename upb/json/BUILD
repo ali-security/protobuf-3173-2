@@ -4,6 +4,7 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//bazel:proto_library.bzl", "proto_library")
 load("//upb/bazel:copts.bzl", "UPB_DEFAULT_COPTS", "UPB_DEFAULT_FEATURES")
+load("//upb/bazel:fuzz_test.bzl", "fuzz_test")
 load(
     "//upb/bazel:upb_proto_library.bzl",
     "upb_c_proto_library",
@@ -86,6 +87,27 @@ upb_proto_reflection_library(
     name = "test_upb_proto_reflection",
     testonly = 1,
     deps = [":test_proto"],
+)
+
+fuzz_test(
+    name = "fuzz",
+    impl_deps = [
+        ":json",
+        ":test_upb_proto",
+        ":test_upb_proto_reflection",
+        "//testing/base/public:gunit",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "//upb/base",
+        "//upb/mem",
+        "//upb/message",
+        "//upb/mini_table",
+        "//upb/reflection",
+    ],
+    impl_hdrs = ["fuzz_impl.h"],
+    impl_srcs = ["fuzz_impl.cc"],
+    regression_srcs = ["fuzz_regression_test.cc"],
+    test_srcs = ["fuzz_test.cc"],
 )
 
 filegroup(

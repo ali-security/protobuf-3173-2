@@ -1,6 +1,7 @@
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//bazel:proto_library.bzl", "proto_library")
+load("//upb/bazel:fuzz_test.bzl", "fuzz_test")
 load(
     "//upb/bazel:upb_proto_library.bzl",
     "upb_c_proto_library",
@@ -48,23 +49,6 @@ upb_proto_reflection_library(
     deps = ["def_to_proto_test_proto"],
 )
 
-cc_library(
-    name = "def_to_proto_test_lib",
-    testonly = 1,
-    hdrs = ["def_to_proto_test.h"],
-    visibility = ["//upb:__pkg__"],
-    deps = [
-        ":def_to_proto",
-        "//src/google/protobuf",
-        "//src/google/protobuf:descriptor_upb_c_proto",
-        "//src/google/protobuf/util:differencer",
-        "//upb/base",
-        "//upb/mem",
-        "//upb/reflection:internal",
-        "@googletest//:gtest",
-    ],
-)
-
 cc_test(
     name = "def_to_proto_test",
     srcs = ["def_to_proto_test.cc"],
@@ -72,7 +56,6 @@ cc_test(
         ":def_to_proto",
         ":def_to_proto_editions_test_upb_proto",
         ":def_to_proto_editions_test_upb_proto_reflection",
-        ":def_to_proto_test_lib",
         ":def_to_proto_test_upb_proto",
         ":def_to_proto_test_upb_proto_reflection",
         "//src/google/protobuf",
@@ -81,12 +64,37 @@ cc_test(
         "//src/google/protobuf/util:differencer",
         "//upb/base",
         "//upb/mem",
+        "//upb/message",
         "//upb/reflection",
+        "//upb/reflection:internal",
         "//upb/test:parse_text_proto",
+        "//upb/wire",
         "@abseil-cpp//absl/strings",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
+)
+
+fuzz_test(
+    name = "def_to_proto_fuzz",
+    impl_deps = [
+        ":def_to_proto",
+        "//src/google/protobuf",
+        "//net/proto2/proto:descriptor_upb_c_proto",
+        "//testing/base/public:gunit",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "//src/google/protobuf",
+        "//src/google/protobuf/util:differencer",
+        "//upb/base",
+        "//upb/mem",
+        "//upb/reflection:internal",
+        "//upb/test:parse_text_proto",
+    ],
+    impl_hdrs = ["def_to_proto_fuzz_impl.h"],
+    impl_srcs = ["def_to_proto_fuzz_impl.cc"],
+    regression_srcs = ["def_to_proto_fuzz_regression_test.cc"],
+    test_srcs = ["def_to_proto_fuzz_test.cc"],
 )
 
 # Required fields

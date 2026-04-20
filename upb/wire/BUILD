@@ -10,6 +10,7 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//bazel:proto_library.bzl", "proto_library")
 load("//upb/bazel:copts.bzl", "UPB_DEFAULT_COPTS", "UPB_DEFAULT_CPPOPTS", "UPB_DEFAULT_FEATURES")
+load("//upb/bazel:fuzz_test.bzl", "fuzz_test")
 load("//upb/bazel:upb_proto_library.bzl", "upb_proto_library")
 
 package(default_applicable_licenses = ["//:license"])
@@ -270,11 +271,56 @@ cc_test(
     srcs = ["eps_copy_input_stream_test.cc"],
     deps = [
         ":eps_copy_input_stream",
+        ":eps_copy_input_stream_fuzz_impl",
         "//upb/base",
         "//upb/mem",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
+)
+
+fuzz_test(
+    name = "eps_copy_input_stream_fuzz",
+    impl_deps = [
+        ":eps_copy_input_stream",
+        ":eps_copy_input_stream_internal",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "//upb/base",
+        "//upb/mem",
+        "//testing/fuzzing:fuzztest",
+        "//testing/base/public:gunit",
+    ],
+    impl_hdrs = ["eps_copy_input_stream_fuzz_impl.h"],
+    impl_srcs = ["eps_copy_input_stream_fuzz_impl.cc"],
+    regression_srcs = ["eps_copy_input_stream_fuzz_regression_test.cc"],
+    test_srcs = ["eps_copy_input_stream_fuzz_test.cc"],
+)
+
+fuzz_test(
+    name = "fuzz",
+    impl_deps = [
+        "//testing/base/public:gunit",
+        "@abseil-cpp//absl/strings",
+        "//upb/mem",
+        "//upb/mini_table",
+        "//upb/mini_table:debug_string",
+        "//upb/test:fuzz_util",
+        "//upb/text:debug",
+        "//upb/message:compare",
+        "//upb/message:message",
+        "//upb/wire",
+    ],
+    impl_hdrs = ["fuzz_impl.h"],
+    impl_srcs = ["fuzz_impl.cc"],
+    regression_deps = [
+        ":eps_copy_input_stream_internal",
+        ":reader",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+    regression_srcs = ["fuzz_regression_test.cc"],
+    test_srcs = ["fuzz_test.cc"],
 )
 
 filegroup(
