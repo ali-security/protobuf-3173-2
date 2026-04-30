@@ -3471,6 +3471,53 @@ void BinaryAndJsonConformanceSuiteImpl<MessageType>::RunJsonTestsForStruct() {
     }
   }
       )");
+
+  std::string deep_json = R"({"optionalStruct": {)";
+  std::string deep_proto = "optional_struct: {\n";
+  int depth = 25;
+  for (int i = 0; i < depth; ++i) {
+    deep_json += R"("n": {)";
+    deep_proto +=
+        "  fields: {\n    key: \"n\"\n    value: {\n      struct_value: {\n";
+  }
+  deep_json += R"("value": 1)";
+  deep_proto +=
+      "        fields: {\n          key: \"value\"\n          value: {\n       "
+      "     number_value: 1\n          }\n        }\n";
+
+  for (int i = 0; i < depth; ++i) {
+    deep_json += '}';
+    deep_proto += "      }\n    }\n  }\n";
+  }
+  deep_json += "}}";
+  deep_proto += "}\n";
+
+  RunValidJsonTest("StructDeepNesting", REQUIRED, deep_json, deep_proto);
+
+  {
+    std::string deep_json = R"({"optionalStruct": {)";
+    std::string deep_proto = "optional_struct: {\n";
+    int depth = 90;
+    for (int i = 0; i < depth; ++i) {
+      deep_json += R"("n": {)";
+      deep_proto +=
+          "  fields: {\n    key: \"n\"\n    value: {\n      struct_value: {\n";
+    }
+    deep_json += R"("value": 1)";
+    deep_proto +=
+        "        fields: {\n          key: \"value\"\n          value: {\n     "
+        "  "
+        "     number_value: 1\n          }\n        }\n";
+
+    for (int i = 0; i < depth; ++i) {
+      deep_json += '}';
+      deep_proto += "      }\n    }\n  }\n";
+    }
+    deep_json += "}}";
+    deep_proto += "}\n";
+
+    RunValidJsonTest("StructDeepNesting90", REQUIRED, deep_json, deep_proto);
+  }
 }
 
 template <typename MessageType>
