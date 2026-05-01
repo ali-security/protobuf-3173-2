@@ -1,0 +1,66 @@
+name: Java Tests
+
+on:
+  push:
+    branches: ['*']
+
+jobs:
+  test:
+    name: ${{ matrix.test-name }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - test-name: Java Maven Tests (java/README.md flow)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run Java build and tests in Docker
+        run: |
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/workspace" \
+            -w /workspace \
+            maven:3-jdk-8 \
+            bash -lc '
+              set -euxo pipefail
+              mkdir -p /usr/lib/jvm
+              ln -sf /usr/local/openjdk-8 /usr/lib/jvm/java-8-openjdk-amd64
+              export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+              export PATH="$JAVA_HOME/bin:$PATH"
+
+              if grep -q "jessie" /etc/apt/sources.list; then
+                sed -i "s|^deb http://deb.debian.org/debian|deb http://archive.debian.org/debian/|" /etc/apt/sources.list
+                sed -i "s|^deb http://security.debian.org/debian-security|deb http://archive.debian.org/debian-security|" /etc/apt/sources.list
+                apt-get -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true update
+                apt-get -y --allow-unauthenticated install autoconf autotools-dev build-essential bzip2 ccache cmake curl gcc git libc6 libc6-dbg libc6-dev libgtest-dev libtool make parallel pkg-config time wget openjdk-11-jdk openjdk-17-jdk python2 python3-dev python3-setuptools python3-pip python3-venv unzip
+              else
+                apt-get update
+                apt-get install -y autoconf autotools-dev build-essential bzip2 ccache cmake curl gcc git libc6 libc6-dbg libc6-dev libgtest-dev libtool make parallel pkg-config time wget openjdk-11-jdk openjdk-17-jdk python2 python3-dev python3-setuptools python3-pip python3-venv unzip
+              fi
+              ./autogen.sh
+              ./configure --disable-shared
+              make -C src -j"$(nproc)" protoc
+              cp src/protoc /usr/local/bin/protoc
+              protoc --version
+
+              cd java
+              mvn --version
+              mvn --batch-mode -e -Dhttps.protocols=TLSv1.2 clean generate-sources generate-test-sources
+              mvn --batch-mode -e -Dhttps.protocols=TLSv1.2 clean package
+            '
+
+      - name: Upload test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-java-maven-tests
+          path: |
+            src/test-suite.log
+            java/**/target/surefire-reports/**
+          if-no-files-found: ignore
