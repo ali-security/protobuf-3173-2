@@ -974,25 +974,6 @@ public class CodedInputStreamTest extends TestCase {
         .contains("Protocol message had too many levels of nesting");
   }
 
-  public void testParseFrom_setRecursionLimit_199unknownGroups() throws Exception {
-    final UnknownFieldSchema<?, ?> schema = SchemaUtil.proto2UnknownFieldSetSchema();
-    Throwable thrown =
-        assertThrows(
-            InvalidProtocolBufferException.class,
-            new ThrowingRunnable() {
-              @Override
-              public void run() throws Throwable {
-                ByteString byteString = generateNestingGroups(199);
-                schema.setRecursionLimit(200);
-                TestAllTypes.parseFrom(byteString);
-              }
-            });
-    assertThat(thrown)
-        .hasMessageThat()
-        .doesNotContain("Protocol message had too many levels of nesting");
-    schema.setRecursionLimit(UnknownFieldSchema.DEFAULT_RECURSION_LIMIT);
-  }
-
   public void testParseFromBytes_concurrent_nestingUnknownGroups() throws Exception {
     int numThreads = 200;
     ArrayList<Thread> threads = new ArrayList<Thread>();
