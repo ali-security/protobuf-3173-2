@@ -10,6 +10,10 @@
     builders during merge; lite runtime and extensions merge from wire more efficiently;
     TextFormat builds recurring sub-messages without merge-from-new-instance (includes
     protobuf PR #10673 / commit a3888f5; CVE-2022-3509 BuilderAdapter merge-target behavior).
+    CVE-2022-3510 is covered by the same MessageReflection.java changes as upstream commit
+    db7c178 (equivalent Java diff to a3888f5 per GHSA-4gg5-vx3j-xwc7).
+  * CVE-2024-7254 / GHSA-735f-pc8j-v9w8: recursion limits for skipMessage and nested
+    unknown-field groups (upstream ac9fb5b4, issue #9785).
 
   Kotlin
   * Fix duplicate proto files error (#8699)

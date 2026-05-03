@@ -44,6 +44,13 @@ import java.io.IOException;
  * crossing protobuf public API boundaries.
  */
 final class ArrayDecoders {
+  static final int DEFAULT_RECURSION_LIMIT = 100;
+
+  @SuppressWarnings("NonFinalStaticField")
+  private static volatile int recursionLimit = DEFAULT_RECURSION_LIMIT;
+
+  private ArrayDecoders() {}
+
   /**
    * A helper used to return multiple values in a Java function. Java doesn't natively support
    * returning multiple values in a function. Creating a new Object to hold the return values will
@@ -57,6 +64,7 @@ final class ArrayDecoders {
     public int int1;
     public long long1;
     public Object object1;
+    public int recursionDepth;
     public final ExtensionRegistryLite extensionRegistry;
 
     Registers() {
@@ -265,7 +273,10 @@ final class ArrayDecoders {
     if (length < 0 || length > limit - position) {
       throw InvalidProtocolBufferException.truncatedMessage();
     }
+    registers.recursionDepth++;
+    checkRecursionLimit(registers.recursionDepth);
     schema.mergeFrom(msg, data, position, position + length, registers);
+    registers.recursionDepth--;
     registers.object1 = msg;
     return position + length;
   }
@@ -284,8 +295,11 @@ final class ArrayDecoders {
     // and it can't be used in group fields).
     final MessageSchema messageSchema = (MessageSchema) schema;
     // It's OK to directly use parseProto2Message since proto3 doesn't have group.
+    registers.recursionDepth++;
+    checkRecursionLimit(registers.recursionDepth);
     final int endPosition =
         messageSchema.parseProto2Message(msg, data, position, limit, endGroup, registers);
+    registers.recursionDepth--;
     registers.object1 = msg;
     return endPosition;
   }
@@ -1045,6 +1059,8 @@ final class ArrayDecoders {
         final UnknownFieldSetLite child = UnknownFieldSetLite.newInstance();
         final int endGroup = (tag & ~0x7) | WireFormat.WIRETYPE_END_GROUP;
         int lastTag = 0;
+        registers.recursionDepth++;
+        checkRecursionLimit(registers.recursionDepth);
         while (position < limit) {
           position = decodeVarint32(data, position, registers);
           lastTag = registers.int1;
@@ -1053,6 +1069,7 @@ final class ArrayDecoders {
           }
           position = decodeUnknownField(lastTag, data, position, limit, child, registers);
         }
+        registers.recursionDepth--;
         if (position > limit || lastTag != endGroup) {
           throw InvalidProtocolBufferException.parseFailure();
         }
@@ -1097,6 +1114,20 @@ final class ArrayDecoders {
         return position;
       default:
         throw InvalidProtocolBufferException.invalidTag();
+    }
+  }
+
+  /**
+   * Set the maximum recursion limit that ArrayDecoders will allow. An exception will be thrown if
+   * the depth of the message exceeds this limit.
+   */
+  public static void setRecursionLimit(int limit) {
+    recursionLimit = limit;
+  }
+
+  private static void checkRecursionLimit(int depth) throws InvalidProtocolBufferException {
+    if (depth >= recursionLimit) {
+      throw InvalidProtocolBufferException.recursionLimitExceeded();
     }
   }
 }
