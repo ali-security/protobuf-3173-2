@@ -3946,7 +3946,8 @@ final class MessageSchema<T> implements Schema<T> {
               unknownFields = unknownFieldSchema.getBuilderFromMessage(message);
             }
             // Unknown field.
-            if (unknownFieldSchema.mergeOneFieldFrom(unknownFields, reader)) {
+            if (unknownFieldSchema.mergeOneFieldFrom(
+                unknownFields, reader, /* currentDepth= */ 0)) {
               continue;
             }
           }
@@ -4321,7 +4322,8 @@ final class MessageSchema<T> implements Schema<T> {
               if (unknownFields == null) {
                 unknownFields = unknownFieldSchema.getBuilderFromMessage(message);
               }
-              if (!unknownFieldSchema.mergeOneFieldFrom(unknownFields, reader)) {
+              if (!unknownFieldSchema.mergeOneFieldFrom(
+                  unknownFields, reader, /* currentDepth= */ 0)) {
                 return;
               }
               break;
@@ -4337,7 +4339,8 @@ final class MessageSchema<T> implements Schema<T> {
             if (unknownFields == null) {
               unknownFields = unknownFieldSchema.getBuilderFromMessage(message);
             }
-            if (!unknownFieldSchema.mergeOneFieldFrom(unknownFields, reader)) {
+            if (!unknownFieldSchema.mergeOneFieldFrom(
+                unknownFields, reader, /* currentDepth= */ 0)) {
               return;
             }
           }

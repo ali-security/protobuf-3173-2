@@ -724,7 +724,16 @@ public abstract class CodedInputStream {
     public void skipMessage() throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -734,7 +743,16 @@ public abstract class CodedInputStream {
     public void skipMessage(CodedOutputStream output) throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag, output)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag, output);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -1447,7 +1465,16 @@ public abstract class CodedInputStream {
     public void skipMessage() throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -1457,7 +1484,16 @@ public abstract class CodedInputStream {
     public void skipMessage(CodedOutputStream output) throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag, output)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag, output);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -2218,7 +2254,16 @@ public abstract class CodedInputStream {
     public void skipMessage() throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -2228,7 +2273,16 @@ public abstract class CodedInputStream {
     public void skipMessage(CodedOutputStream output) throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag, output)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag, output);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -3347,7 +3401,16 @@ public abstract class CodedInputStream {
     public void skipMessage() throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }
@@ -3357,7 +3420,16 @@ public abstract class CodedInputStream {
     public void skipMessage(CodedOutputStream output) throws IOException {
       while (true) {
         final int tag = readTag();
-        if (tag == 0 || !skipField(tag, output)) {
+        if (tag == 0) {
+          return;
+        }
+        if (recursionDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        ++recursionDepth;
+        boolean fieldSkipped = skipField(tag, output);
+        --recursionDepth;
+        if (!fieldSkipped) {
           return;
         }
       }

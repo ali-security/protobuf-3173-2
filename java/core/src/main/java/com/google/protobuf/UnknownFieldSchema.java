@@ -35,6 +35,11 @@ import java.io.IOException;
 @ExperimentalApi
 abstract class UnknownFieldSchema<T, B> {
 
+  static final int DEFAULT_RECURSION_LIMIT = 100;
+
+  @SuppressWarnings("NonFinalStaticField")
+  private static volatile int recursionLimit = DEFAULT_RECURSION_LIMIT;
+
   /** Whether unknown fields should be dropped. */
   abstract boolean shouldDiscardUnknownFields(Reader reader);
 
@@ -78,7 +83,8 @@ abstract class UnknownFieldSchema<T, B> {
   abstract void makeImmutable(Object message);
 
   /** Merges one field into the unknown fields. */
-  final boolean mergeOneFieldFrom(B unknownFields, Reader reader) throws IOException {
+  final boolean mergeOneFieldFrom(B unknownFields, Reader reader, int currentDepth)
+      throws IOException {
     int tag = reader.getTag();
     int fieldNumber = WireFormat.getTagFieldNumber(tag);
     switch (WireFormat.getTagWireType(tag)) {
@@ -97,7 +103,12 @@ abstract class UnknownFieldSchema<T, B> {
       case WireFormat.WIRETYPE_START_GROUP:
         final B subFields = newBuilder();
         int endGroupTag = WireFormat.makeTag(fieldNumber, WireFormat.WIRETYPE_END_GROUP);
-        mergeFrom(subFields, reader);
+        currentDepth++;
+        if (currentDepth >= recursionLimit) {
+          throw InvalidProtocolBufferException.recursionLimitExceeded();
+        }
+        mergeFrom(subFields, reader, currentDepth);
+        currentDepth--;
         if (endGroupTag != reader.getTag()) {
           throw InvalidProtocolBufferException.invalidEndTag();
         }
@@ -110,10 +121,11 @@ abstract class UnknownFieldSchema<T, B> {
     }
   }
 
-  final void mergeFrom(B unknownFields, Reader reader) throws IOException {
+  private final void mergeFrom(B unknownFields, Reader reader, int currentDepth)
+      throws IOException {
     while (true) {
       if (reader.getFieldNumber() == Reader.READ_DONE
-          || !mergeOneFieldFrom(unknownFields, reader)) {
+          || !mergeOneFieldFrom(unknownFields, reader, currentDepth)) {
         break;
       }
     }
@@ -130,4 +142,12 @@ abstract class UnknownFieldSchema<T, B> {
   abstract int getSerializedSizeAsMessageSet(T message);
 
   abstract int getSerializedSize(T unknowns);
+
+  /**
+   * Set the maximum recursion limit that UnknownFieldSchema will allow. An exception will be thrown
+   * if the depth of the message exceeds this limit.
+   */
+  public void setRecursionLimit(int limit) {
+    recursionLimit = limit;
+  }
 }
