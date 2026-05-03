@@ -8,7 +8,8 @@
   * Backport upstream 3.16.x Java parsing refactor (protobuf #10668 / CVE-2022-3171):
     wire-format parsing moved from parse constructors to builders; reuse unknown-field
     builders during merge; lite runtime and extensions merge from wire more efficiently;
-    TextFormat builds recurring sub-messages without merge-from-new-instance.
+    TextFormat builds recurring sub-messages without merge-from-new-instance (includes
+    protobuf PR #10673 / commit a3888f5; CVE-2022-3509 BuilderAdapter merge-target behavior).
 
   Kotlin
   * Fix duplicate proto files error (#8699)
